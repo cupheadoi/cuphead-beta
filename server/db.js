@@ -201,8 +201,9 @@ export function roadmapObject() {
 }
 
 export function publicBootstrap(userId = null) {
-  const reviewer = userId && one('SELECT reviewer FROM users WHERE id=:id',{id:userId})?.reviewer;
-  const lessonRows = all(`SELECT * FROM lessons WHERE status='published' OR (:reviewer=1 AND status='review') ORDER BY created_at`, { reviewer: reviewer ? 1 : 0 });
+  const user = userId && one('SELECT role, reviewer FROM users WHERE id=:id', { id: userId });
+  const canSeeReview = Boolean(user && (['owner', 'admin'].includes(user.role) || user.reviewer));
+  const lessonRows = all(`SELECT * FROM lessons WHERE status='published' OR (:canSeeReview=1 AND status='review') ORDER BY created_at`, { canSeeReview: canSeeReview ? 1 : 0 });
   const problemRows = all(`SELECT p.*, s.name AS source_name, s.slug AS source_slug, s.url AS source_url, s.brand_color FROM problems p JOIN problem_sources s ON s.id=p.source_id WHERE p.status='published' ORDER BY p.created_at DESC`);
   return { roadmap: roadmapObject(), lessons: lessonRows.map(mapLesson), problems: problemRows.map(x => mapProblem(x, userId)), sources: all(`SELECT * FROM problem_sources ORDER BY name`).map(x => ({ id:x.id,name:x.name,slug:x.slug,url:x.url,color:x.brand_color })) };
 }

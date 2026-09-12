@@ -4,8 +4,9 @@
   "version": "0.5.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k -n WEB,API -c cyan,magenta \"vite --host 0.0.0.0\" \"node server/server.js\"",
+    "dev": "node server/server.js",
     "build": "tsc && vite build",
+    "lint": "tsc --noEmit",
     "start": "node server/server.js",
     "preview": "vite preview"
   },
