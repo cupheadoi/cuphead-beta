@@ -1,6 +1,15 @@
 {
   "users": [
     {
+      "id": "user-whomanh",
+      "username": "WhoManH",
+      "displayName": "WhoManH",
+      "role": "owner",
+      "passwordSalt": "3c41c70db3dea0031da613f3903761bb",
+      "passwordHash": "e4552b39dcc9f827e1caf4ce602160360505fe531125dea42a7145bf2a0548608093cd2683e7ee0d4c78a012776e232040d25ba85a05f3ab1a952f9543d5bd86",
+      "createdAt": "2026-09-12T14:40:00.000Z"
+    },
+    {
       "id": "user-owner",
       "username": "admin",
       "displayName": "Cuphead Owner",

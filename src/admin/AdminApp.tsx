@@ -58,6 +58,22 @@ function RequestsPanel() {
 
 function Login({ onLogin, onBack }: { onLogin: (u: SessionUser) => void; onBack: () => void }) {
   const [username, setUsername] = useState('admin'); const [password, setPassword] = useState('cuphead123'); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
-  async function submit(e: React.FormEvent) { e.preventDefault(); setBusy(true); setError(''); try { const r = await api.login(username, password); setAuthToken(r.token); onLogin(r.user); } catch (e: any) { setError(e.message); } finally { setBusy(false); } }
-  return <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4"><div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(37,99,235,.22),transparent_32rem)]" /><form onSubmit={submit} className="relative z-10 glass-card rounded-3xl p-7 sm:p-9 w-full max-w-md"><button type="button" onClick={onBack} className="back-link mb-7"><ArrowRight size={15} /> بازگشت به سایت</button><img src="/icon.png" alt="CupHead" className="w-14 h-14 rounded-2xl mb-5" /><h1 className="text-3xl font-black text-white">ورود به مدیریت</h1><p className="text-slate-500 text-sm mt-2 mb-7">برای Headmaster و Admin.</p><label className="field-label">نام کاربری<input className="input-ui mt-2 mb-4" value={username} onChange={e => setUsername(e.target.value)} /></label><label className="field-label">رمز عبور<input className="input-ui mt-2" type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>{error && <div className="error-note mt-4">{error}</div>}<button disabled={busy} className="btn-primary w-full mt-6">{busy ? 'در حال ورود...' : 'ورود'}</button><div className="text-xs text-slate-600 mt-5">نمونه: admin / cuphead123 · headadmin / headadmin123</div></form></div>;
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      const r = await api.login(username, password);
+      if (!r?.token) {
+        throw new Error('توکن احراز هویت دریافت نشد.');
+      }
+      setAuthToken(r.token);
+      onLogin(r.user);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4"><div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(37,99,235,.22),transparent_32rem)]" /><form onSubmit={submit} className="relative z-10 glass-card rounded-3xl p-7 sm:p-9 w-full max-w-md"><button type="button" onClick={onBack} className="back-link mb-7"><ArrowRight size={15} /> بازگشت به سایت</button><img src="/icon.png" alt="CupHead" className="w-14 h-14 rounded-2xl mb-5" /><h1 className="text-3xl font-black text-white">ورود به مدیریت</h1><p className="text-slate-500 text-sm mt-2 mb-7">برای Headmaster و Admin.</p><label className="field-label">نام کاربری<input className="input-ui mt-2 mb-4" value={username} onChange={e => setUsername(e.target.value)} /></label><label className="field-label">رمز عبور<input className="input-ui mt-2" type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>{error && <div className="error-note mt-4">{error}</div>}<button disabled={busy} className="btn-primary w-full mt-6">{busy ? 'در حال ورود...' : 'ورود'}</button><div className="text-xs text-slate-600 mt-5">نمونه: WhoManH / 0swWpTBwk3B4boitrbwk · admin / cuphead123 · headadmin / headadmin123</div></form></div>;
 }

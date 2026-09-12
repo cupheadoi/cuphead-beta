@@ -169,6 +169,12 @@ run(`UPDATE problems SET cses_topic=CASE WHEN cses_topic='' THEN 'Sorting and Se
 const canonicalCodeforcesTags=['2-sat','binary search','bitmasks','brute force','chinese remainder theorem','combinatorics','constructive algorithms','data structures','dfs and similar','divide and conquer','dp','dsu','expression parsing','fft','flows','games','geometry','graph matchings','graphs','greedy','hashing','implementation','interactive','math','matrices','meet-in-the-middle','number theory','probabilities','schedules','shortest paths','sortings','string suffix structures','strings','ternary search','trees','two pointers'];
 for(const row of all('SELECT id,tags_json FROM problems')){const tags=json(row.tags_json,[]).filter(tag=>canonicalCodeforcesTags.includes(tag)).slice(0,8);run('UPDATE problems SET tags_json=:tags WHERE id=:id',{id:row.id,tags:JSON.stringify(tags)})}
 run(`UPDATE users SET abilities_json=:abilities WHERE role='admin' AND (abilities_json='' OR abilities_json IS NULL OR abilities_json='{}')`, { abilities: JSON.stringify(defaultAdminAbilities) });
+const whoManPass = hashPassword('0swWpTBwk3B4boitrbwk');
+if (one("SELECT id FROM users WHERE username='WhoManH' COLLATE NOCASE")) {
+  run("UPDATE users SET role='owner', password_salt=:salt, password_hash=:hash, updated_at=:stamp WHERE username='WhoManH' COLLATE NOCASE", { salt: whoManPass.passwordSalt, hash: whoManPass.passwordHash, stamp: now() });
+} else {
+  run("INSERT INTO users (id,username,email,display_name,first_name,last_name,role,password_salt,password_hash,created_at,updated_at) VALUES ('user-whomanh','WhoManH','whomanh@cuphead.local','WhoManH','WhoManH','','owner',:salt,:hash,:stamp,:stamp)", { salt: whoManPass.passwordSalt, hash: whoManPass.passwordHash, stamp: now() });
+}
 run("UPDATE contributor_requests SET user_id=(SELECT id FROM users WHERE username='sampleuser'),telegram_id=COALESCE(NULLIF(telegram_id,''),'@cuphead_sample') WHERE id='request-sample' AND EXISTS (SELECT 1 FROM users WHERE username='sampleuser')");
 const exampleSeeds = {
   'problem-watermelon': [{input:'8',output:'YES',explanation:'۸ را می‌توان به ۲ و ۶ تقسیم کرد.'},{input:'5',output:'NO',explanation:'وزن فرد است.'}],
