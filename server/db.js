@@ -4,14 +4,38 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+const isVercel = Boolean(process.env.VERCEL);
 const here = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(here, 'data');
-const dbPath = path.join(dataDir, 'cuphead.sqlite');
 const schemaPath = path.join(dataDir, 'schema.sql');
 const legacyPath = path.join(dataDir, 'database.json');
-fs.mkdirSync(dataDir, { recursive: true });
+
+let dbPath = path.join(dataDir, 'cuphead.sqlite');
+
+if (isVercel) {
+  const tmpDbPath = path.join('/tmp', 'cuphead.sqlite');
+  const seedDbPath = path.join(dataDir, 'cuphead.sqlite');
+  if (!fs.existsSync(tmpDbPath) && fs.existsSync(seedDbPath)) {
+    try {
+      fs.copyFileSync(seedDbPath, tmpDbPath);
+    } catch (err) {
+      console.warn('Could not copy seed database to /tmp:', err);
+    }
+  }
+  dbPath = tmpDbPath;
+} else {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
 export const db = new DatabaseSync(dbPath);
 db.exec(fs.readFileSync(schemaPath, 'utf8'));
+try {
+  db.exec(`CREATE TABLE IF NOT EXISTS user_sessions (
+    token TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  )`);
+} catch { /* session table ready */ }
 function ensureColumn(table, column, definition) {
   try { db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`); } catch { /* existing database */ }
 }
@@ -53,6 +77,26 @@ export function verifyPassword(password, user) {
 export const all = (sql, params = {}) => db.prepare(sql).all(params);
 export const one = (sql, params = {}) => db.prepare(sql).get(params);
 export const run = (sql, params = {}) => db.prepare(sql).run(params);
+
+export function getDbSession(token) {
+  if (!token) return null;
+  const row = one('SELECT user_id, created_at FROM user_sessions WHERE token=:token', { token });
+  return row ? { userId: row.user_id, createdAt: Number(row.created_at) } : null;
+}
+
+export function setDbSession(token, userId, createdAt = Date.now()) {
+  if (!token || !userId) return;
+  run('INSERT OR REPLACE INTO user_sessions (token, user_id, created_at) VALUES (:token, :userId, :createdAt)', {
+    token,
+    userId,
+    createdAt
+  });
+}
+
+export function deleteDbSession(token) {
+  if (!token) return;
+  run('DELETE FROM user_sessions WHERE token=:token', { token });
+}
 db.exec(`CREATE TABLE IF NOT EXISTS problem_submissions (id TEXT PRIMARY KEY,problem_id TEXT NOT NULL UNIQUE REFERENCES problems(id) ON DELETE CASCADE,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,status TEXT NOT NULL DEFAULT 'pending',xp_awarded INTEGER NOT NULL DEFAULT 0,review_note TEXT NOT NULL DEFAULT '',published_parts_json TEXT NOT NULL DEFAULT '{}',created_at TEXT NOT NULL,reviewed_at TEXT)`);
 db.exec(`CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY,actor_id TEXT REFERENCES users(id) ON DELETE SET NULL,actor_username TEXT NOT NULL DEFAULT '',actor_role TEXT NOT NULL DEFAULT '',method TEXT NOT NULL,path TEXT NOT NULL,status_code INTEGER NOT NULL DEFAULT 200,summary TEXT NOT NULL DEFAULT '',metadata_json TEXT NOT NULL DEFAULT '{}',created_at TEXT NOT NULL)`);
 db.exec(`CREATE TABLE IF NOT EXISTS xp_settings (key TEXT PRIMARY KEY,value INTEGER NOT NULL DEFAULT 0)`);
