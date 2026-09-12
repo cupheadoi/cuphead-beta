@@ -52,7 +52,7 @@ export default function PublicLearnPage() {
           <div>
             <div className="eyebrow"><Sparkles size={14} /> مسیر رسمی CupHead</div>
             <div className="mt-4 flex flex-wrap items-center gap-4"><span className={`chess-piece piece-${rank}`} aria-hidden="true">{pieces[rank]}</span><div><p className="text-sm font-semibold text-slate-400">مسیر {sectionLabels[section]}</p><h1 className="roadmap-title text-4xl text-white sm:text-6xl">{rankLabels[rank]}</h1></div></div>
-            <p className="mt-5 max-w-2xl text-[.975rem] leading-8 text-slate-300">یک گام روشن از مسیر آمادگی المپیاد: درس‌ها را به ترتیب بخوان، تمرین کن و پیشرفتت را ثبت کن.</p>
+            <p className="mt-5 max-w-2xl text-[.975rem] leading-8 text-slate-300">یک گام روشن از مسیر آمادگی المپیاد: درس‌ها را به ترتیب بخوان، تمرین کن و پیشرفت خودت را ثبت کن.</p>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:min-w-[16rem]">
             <div className="rounded-2xl border border-slate-400/15 bg-slate-950/25 p-4"><Layers3 className="text-cyan-200" size={19} /><div className="mt-5 text-2xl font-black text-white">{effectiveModules.length}</div><div className="mt-1 text-xs text-slate-500">ماژول آموزشی</div></div>
