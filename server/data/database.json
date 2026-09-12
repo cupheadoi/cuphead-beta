@@ -1,0 +1,188 @@
+{
+  "users": [
+    {
+      "id": "user-owner",
+      "username": "admin",
+      "displayName": "Cuphead Owner",
+      "role": "owner",
+      "passwordSalt": "8c1a7f4b5e2d9a31b67c8d00ee44aa91",
+      "passwordHash": "a2c68ddbb510998a671f54e645a8f82231a029eec806af02a6ae1da8297c9e6abbf7638e578e6abd6468a7262ff30a3682c5ead8e92a9459b95c64a79e4ac2b1",
+      "createdAt": "2026-09-09T00:00:00.000Z"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "lesson-fast-io",
+      "slug": "fast-io-cpp",
+      "title": "ورودی و خروجی سریع در C++",
+      "summary": "تنظیم درست cin و cout، تفاوت \\n و endl و نکات مهم I/O در مسابقه.",
+      "section": "programming",
+      "rank": "bronze",
+      "difficulty": "مقدماتی",
+      "status": "published",
+      "contentMarkdown": "# ورودی و خروجی سریع در C++\n\nدر بیشتر مسائل مسابقه‌ای، `cin` و `cout` برای ورودی و خروجی کافی هستند. اما وقتی حجم ورودی زیاد می‌شود، بهتر است تنظیمات استاندارد رقابتی را در ابتدای `main` قرار دهیم.\n\n## قالب پیشنهادی\n\n```cpp\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n\n    int n;\n    cin >> n;\n    cout << n << '\\n';\n}\n```\n\n`ios::sync_with_stdio(false)` همگام‌سازی iostreamهای C++ با stdio زبان C را خاموش می‌کند و معمولاً سرعت ورودی/خروجی را بهتر می‌کند. `cin.tie(nullptr)` نیز اتصال پیش‌فرض `cin` به `cout` را برمی‌دارد.\n\n> بعد از خاموش کردن همگام‌سازی، بهتر است `cin/cout` را با `scanf/printf` مخلوط نکنید.\n\n## `\\n` یا `endl`؟\n\nهر دو خط جدید ایجاد می‌کنند، اما `endl` علاوه بر آن خروجی را **flush** می‌کند. flush مکرر می‌تواند در حلقه‌های بزرگ هزینه‌ی غیرضروری ایجاد کند.\n\n```cpp\nfor (int i = 0; i < n; ++i) {\n    cout << a[i] << '\\n';\n}\n```\n\n## خواندن چند مقدار\n\n```cpp\nint n;\nlong long x;\nstring s;\ncin >> n >> x >> s;\n```\n\nبرای خواندن یک خط کامل از `getline` استفاده کنید. اگر قبل از آن با `cin >> ...` ورودی گرفته‌اید، به باقی‌مانده‌ی newline توجه کنید.\n\n```cpp\nstring line;\ngetline(cin >> ws, line);\n```\n\n## پیچیدگی و کارایی\n\nتنظیم دو خط بالا خودش `O(1)` است. زمان واقعی ورودی متناسب با مقدار داده‌ای است که می‌خوانید؛ هدف این تنظیمات حذف سربار غیرضروری است، نه تغییر مرتبه‌ی پیچیدگی الگوریتم.\n\n## اشتباهات متداول\n\n- استفاده از `endl` در خروجی‌های بسیار زیاد بدون نیاز به flush.\n- مخلوط کردن iostream و stdio بعد از `sync_with_stdio(false)`.\n- فراموش کردن `long long` وقتی ورودی از محدوده‌ی `int` بزرگ‌تر است.\n- استفاده از `getline` بلافاصله بعد از `cin >>` بدون مدیریت whitespace.\n\n## جمع‌بندی\n\nبرای اکثر مسائل، این دو خط را در template مسابقه‌ای خود داشته باشید:\n\n```cpp\nios::sync_with_stdio(false);\ncin.tie(nullptr);\n```",
+      "practice": [
+        {
+          "name": "CSES — Weird Algorithm",
+          "difficulty": "آسان",
+          "url": "https://cses.fi/problemset/task/1068/"
+        },
+        {
+          "name": "Codeforces — Watermelon",
+          "difficulty": "آسان",
+          "url": "https://codeforces.com/problemset/problem/4/A"
+        }
+      ],
+      "createdAt": "2026-09-09T00:00:00.000Z",
+      "updatedAt": "2026-09-09T00:00:00.000Z"
+    },
+    {
+      "id": "lesson-types",
+      "slug": "cpp-types",
+      "title": "متغیرها و انواع داده",
+      "summary": "int، long long، double، bool و محدوده‌ی انواع عددی.",
+      "section": "programming",
+      "rank": "bronze",
+      "difficulty": "مقدماتی",
+      "status": "published",
+      "contentMarkdown": "# متغیرها و انواع داده\n\nاین صفحه نمونه‌ی کوتاه است و بعداً با محتوای کامل جایگزین می‌شود.\n\n```cpp\nint n = 10;\nlong long big = 10000000000LL;\ndouble x = 3.14;\nbool ok = true;\n```",
+      "practice": [],
+      "createdAt": "2026-09-09T00:00:00.000Z",
+      "updatedAt": "2026-09-09T00:00:00.000Z"
+    },
+    {
+      "id": "lesson-conditions",
+      "slug": "cpp-conditions",
+      "title": "شرط‌ها",
+      "summary": "if، else if، else و switch در C++.",
+      "section": "programming",
+      "rank": "bronze",
+      "difficulty": "مقدماتی",
+      "status": "published",
+      "contentMarkdown": "# شرط‌ها\n\n```cpp\nif (x > 0) cout << \"positive\\n\";\nelse if (x == 0) cout << \"zero\\n\";\nelse cout << \"negative\\n\";\n```",
+      "practice": [],
+      "createdAt": "2026-09-09T00:00:00.000Z",
+      "updatedAt": "2026-09-09T00:00:00.000Z"
+    },
+    {
+      "id": "lesson-loops",
+      "slug": "cpp-loops",
+      "title": "حلقه‌ها",
+      "summary": "for، while، break و continue.",
+      "section": "programming",
+      "rank": "bronze",
+      "difficulty": "مقدماتی",
+      "status": "published",
+      "contentMarkdown": "# حلقه‌ها\n\n```cpp\nfor (int i = 0; i < n; ++i) {\n    cout << i << '\\n';\n}\n```",
+      "practice": [],
+      "createdAt": "2026-09-09T00:00:00.000Z",
+      "updatedAt": "2026-09-09T00:00:00.000Z"
+    },
+    {
+      "id": "lesson-functions",
+      "slug": "cpp-functions",
+      "title": "توابع و پارامترها",
+      "summary": "تعریف تابع، return و pass-by-reference.",
+      "section": "programming",
+      "rank": "bronze",
+      "difficulty": "مقدماتی",
+      "status": "published",
+      "contentMarkdown": "# توابع\n\n```cpp\nint add(int a, int b) { return a + b; }\n```",
+      "practice": [],
+      "createdAt": "2026-09-09T00:00:00.000Z",
+      "updatedAt": "2026-09-09T00:00:00.000Z"
+    },
+    {
+      "id": "lesson-vector",
+      "slug": "cpp-vector",
+      "title": "std::vector",
+      "summary": "آرایه‌ی پویا و عملیات اصلی vector.",
+      "section": "programming",
+      "rank": "silver",
+      "difficulty": "متوسط",
+      "status": "published",
+      "contentMarkdown": "# `std::vector`\n\n```cpp\nvector<int> v;\nv.push_back(10);\n```",
+      "practice": [],
+      "createdAt": "2026-09-09T00:00:00.000Z",
+      "updatedAt": "2026-09-09T00:00:00.000Z"
+    },
+    {
+      "id": "lesson-map-set",
+      "slug": "cpp-map-set",
+      "title": "map و set",
+      "summary": "کانتینرهای مرتب STL و عملیات اصلی آن‌ها.",
+      "section": "programming",
+      "rank": "silver",
+      "difficulty": "متوسط",
+      "status": "published",
+      "contentMarkdown": "# `map` و `set`\n\n```cpp\nmap<string,int> freq;\nset<int> seen;\n```",
+      "practice": [],
+      "createdAt": "2026-09-09T00:00:00.000Z",
+      "updatedAt": "2026-09-09T00:00:00.000Z"
+    },
+    {
+      "id": "lesson-templates",
+      "slug": "cpp-templates",
+      "title": "Templates",
+      "summary": "نوشتن توابع و ساختارهای generic در C++.",
+      "section": "programming",
+      "rank": "gold",
+      "difficulty": "پیشرفته",
+      "status": "published",
+      "contentMarkdown": "# Templates\n\n```cpp\ntemplate<class T>\nT mx(T a, T b) { return a > b ? a : b; }\n```",
+      "practice": [],
+      "createdAt": "2026-09-09T00:00:00.000Z",
+      "updatedAt": "2026-09-09T00:00:00.000Z"
+    }
+  ],
+  "roadmap": {
+    "programming": {
+      "bronze": [
+        {
+          "id": "p-b-1",
+          "title": "۱. پایه‌های C++",
+          "description": "سینتکس، ورودی/خروجی و کنترل جریان",
+          "lessonIds": [
+            "lesson-fast-io",
+            "lesson-types",
+            "lesson-conditions",
+            "lesson-loops",
+            "lesson-functions"
+          ]
+        }
+      ],
+      "silver": [
+        {
+          "id": "p-s-1",
+          "title": "۱. STL روزمره",
+          "description": "کانتینرها و ابزارهایی که در حل مسئله زیاد استفاده می‌شوند",
+          "lessonIds": [
+            "lesson-vector",
+            "lesson-map-set"
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "p-g-1",
+          "title": "۱. C++ پیشرفته",
+          "description": "سینتکس پیشرفته و ابزارهای generic",
+          "lessonIds": [
+            "lesson-templates"
+          ]
+        }
+      ]
+    },
+    "algorithm": {
+      "bronze": [],
+      "silver": [],
+      "gold": []
+    },
+    "theory": {
+      "bronze": [],
+      "silver": [],
+      "gold": []
+    }
+  },
+  "files": []
+}

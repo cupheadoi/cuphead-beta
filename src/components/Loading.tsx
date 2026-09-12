@@ -1,0 +1,1 @@
+export default function Loading(){return <div className="min-h-[55vh] flex items-center justify-center"><div className="w-10 h-10 rounded-full border-2 border-blue-500/20 border-t-blue-400 animate-spin"/></div>}
