@@ -1,12 +1,8 @@
-import app, { ensureCloudSyncReady } from '../server/server.js';
-
-export default async function handler(req, res) {
-  if (ensureCloudSyncReady) {
-    try {
-      await ensureCloudSyncReady();
-    } catch (err) {
-      console.error('[Vercel Handler] Cloud sync check failed:', err);
-    }
-  }
-  return app(req, res);
+export default function handler(_req, res) {
+  res
+    .status(410)
+    .json({
+      error:
+        "This Vercel deployment serves the frontend only. Configure VITE_API_BASE_URL to a persistent CupHead API service.",
+    });
 }

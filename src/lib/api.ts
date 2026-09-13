@@ -1,17 +1,282 @@
-import type { AdminUser,ContributorRequest,Contribution,Lesson,Problem,ProblemDetail,ProblemSubmission,PublicBootstrap,Roadmap,ScoreboardRow,SessionUser,UploadedFile,XpSettings } from '../types';
-const TOKEN_KEY='cuphead_session_token';
-export const authToken=()=>localStorage.getItem(TOKEN_KEY);
-export const setAuthToken=(t:string|null)=>t?localStorage.setItem(TOKEN_KEY,t):localStorage.removeItem(TOKEN_KEY);
-async function request<T>(url:string,options:RequestInit={}){const headers=new Headers(options.headers);if(!(options.body instanceof FormData))headers.set('Content-Type','application/json');const token=authToken();if(token)headers.set('Authorization',`Bearer ${token}`);const res=await fetch(url,{...options,headers});const data=await res.json().catch(()=>({}));if(res.status===401){if(url.includes('/api/auth/me')||url.includes('/api/auth/login'))setAuthToken(null);throw new Error(data.error||'UNAUTHORIZED');}if(!res.ok)throw new Error(data.error||'Request failed');return data as T}
-export const api={
- publicBootstrap:()=>request<PublicBootstrap>('/api/public/bootstrap'),problem:(source:string,identifier:string)=>request<ProblemDetail>(`/api/public/problems/${encodeURIComponent(source)}/${encodeURIComponent(identifier)}`),problemBySlug:(slug:string)=>request<ProblemDetail>(`/api/public/problems/legacy/${encodeURIComponent(slug)}`),
- login:(username:string,password:string)=>request<{token:string;user:SessionUser}>('/api/auth/login',{method:'POST',body:JSON.stringify({username,password})}),register:(x:any)=>request<{token:string;user:SessionUser}>('/api/auth/register',{method:'POST',body:JSON.stringify(x)}),me:()=>request<{user:SessionUser}>('/api/auth/me'),logout:()=>request<{ok:boolean}>('/api/auth/logout',{method:'POST'}),
- profile:()=>request<any>('/api/profile'),updateProfile:(x:any)=>request<{user:SessionUser}>('/api/profile',{method:'PUT',body:JSON.stringify(x)}),uploadAvatar:(file:File)=>{const f=new FormData();f.append('avatar',file);return request<{user:SessionUser}>('/api/profile/avatar',{method:'POST',body:f})},saveProgress:(problemId:string,solved:boolean)=>request<any>(`/api/progress/${problemId}`,{method:'PUT',body:JSON.stringify({solved})}),requestContributor:(x:any)=>request<any>('/api/contributor-requests',{method:'POST',body:JSON.stringify(x)}),submitContribution:(problemId:string,x:any)=>request<any>(`/api/problems/${problemId}/contributions`,{method:'POST',body:JSON.stringify(x)}),submitProblem:(x:any)=>request<any>('/api/problem-submissions',{method:'POST',body:JSON.stringify(x)}),scoreboard:()=>request<ScoreboardRow[]>('/api/public/scoreboard'),publicXpSettings:()=>request<XpSettings>('/api/public/xp-settings'),
- collections:()=>request<any[]>('/api/public/collections'),collection:(slug:string)=>request<any>(`/api/public/collections/${encodeURIComponent(slug)}`),reactions:(contentType:string,contentId:string)=>request<any>(`/api/reactions?contentType=${encodeURIComponent(contentType)}&contentId=${encodeURIComponent(contentId)}`),react:(x:any)=>request<any>('/api/reactions',{method:'POST',body:JSON.stringify(x)}),createReviewerTicket:(x:any)=>request<any>('/api/reviewer-tickets',{method:'POST',body:JSON.stringify(x)}),
- dashboard:()=>request<any>('/api/admin/dashboard'),adminLessons:()=>request<Lesson[]>('/api/admin/lessons'),createLesson:(x:Partial<Lesson>)=>request<Lesson>('/api/admin/lessons',{method:'POST',body:JSON.stringify(x)}),updateLesson:(id:string,x:Partial<Lesson>)=>request<Lesson>(`/api/admin/lessons/${id}`,{method:'PUT',body:JSON.stringify(x)}),deleteLesson:(id:string)=>request<{ok:boolean}>(`/api/admin/lessons/${id}`,{method:'DELETE'}),
- getRoadmap:()=>request<Roadmap>('/api/admin/roadmap'),saveRoadmap:(x:Roadmap)=>request<Roadmap>('/api/admin/roadmap',{method:'PUT',body:JSON.stringify(x)}),adminProblems:()=>request<Problem[]>('/api/admin/problems'),adminProblem:(id:string)=>request<ProblemDetail>(`/api/admin/problems/${id}`),createProblem:(x:any)=>request<Problem>('/api/admin/problems',{method:'POST',body:JSON.stringify(x)}),updateProblem:(id:string,x:any)=>request<Problem>(`/api/admin/problems/${id}`,{method:'PUT',body:JSON.stringify(x)}),problemSubmissions:()=>request<ProblemSubmission[]>('/api/admin/problem-submissions'),reviewProblemSubmission:(id:string,body:any)=>request<any>(`/api/admin/problem-submissions/${id}`,{method:'PUT',body:JSON.stringify(body)}),
- contributions:()=>request<Contribution[]>('/api/admin/contributions'),reviewContribution:(id:string,status:'accepted'|'rejected',reviewNote='')=>request<any>(`/api/admin/contributions/${id}`,{method:'PUT',body:JSON.stringify({status,reviewNote})}),updateContribution:(id:string,x:any)=>request<any>(`/api/admin/contributions/${id}`,{method:'PATCH',body:JSON.stringify(x)}),requests:()=>request<ContributorRequest[]>('/api/admin/requests'),reviewRequest:(id:string,status:'approved'|'rejected')=>request<any>(`/api/admin/requests/${id}`,{method:'PUT',body:JSON.stringify({status})}),
- files:()=>request<UploadedFile[]>('/api/admin/files'),uploadFile:(file:File)=>{const f=new FormData();f.append('file',file);return request<UploadedFile>('/api/admin/files',{method:'POST',body:f})},deleteFile:(id:string)=>request<{ok:boolean}>(`/api/admin/files/${id}`,{method:'DELETE'}),users:()=>request<AdminUser[]>('/api/admin/users'),createUser:(x:any)=>request<AdminUser>('/api/admin/users',{method:'POST',body:JSON.stringify(x)}),updateRole:(id:string,role:string)=>request<AdminUser>(`/api/admin/users/${id}/role`,{method:'PUT',body:JSON.stringify({role})}),updateAdminAbilities:(id:string,abilities:Record<string,boolean>)=>request<AdminUser>(`/api/admin/users/${id}/abilities`,{method:'PUT',body:JSON.stringify({abilities})}),deleteUser:(id:string)=>request<{ok:boolean}>(`/api/admin/users/${id}`,{method:'DELETE'}),updateUserPassword:(id:string,password:string)=>request<AdminUser>(`/api/admin/users/${id}/password`,{method:'PUT',body:JSON.stringify({password})}),logs:()=>request<any[]>('/api/admin/logs'),xpSettings:()=>request<any>('/api/admin/xp-settings'),updateXpSettings:(x:any)=>request<any>('/api/admin/xp-settings',{method:'PUT',body:JSON.stringify(x)}),adminCollections:()=>request<any[]>('/api/admin/collections'),adminCollection:(id:string)=>request<any>(`/api/admin/collections/${id}`),createCollection:(x:any)=>request<any>('/api/admin/collections',{method:'POST',body:JSON.stringify(x)}),updateCollection:(id:string,x:any)=>request<any>(`/api/admin/collections/${id}`,{method:'PUT',body:JSON.stringify(x)}),deleteCollection:(id:string)=>request<any>(`/api/admin/collections/${id}`,{method:'DELETE'}),reviewerTickets:()=>request<any[]>('/api/admin/reviewer-tickets'),reviewReviewerTicket:(id:string,x:any)=>request<any>(`/api/admin/reviewer-tickets/${id}`,{method:'PUT',body:JSON.stringify(x)}),databaseInfo:()=>request<{path:string;size:number;userCount:number;problemCount:number;isVercel:boolean;isCustomPath:boolean}>('/api/admin/database/info'),restoreDatabase:(file:File)=>{const f=new FormData();f.append('database',file);return request<{ok:boolean;message:string}>('/api/admin/database/restore',{method:'POST',body:f})},
- databaseSyncStatus:()=>request<{hasToken:boolean;enabled:boolean;provider:string;lastSyncedAt:string|null;lastSyncError:string|null;lastBlobUrl:string|null;isSyncing:boolean;localFileSize:number}>('/api/admin/database/sync-status'),
- databaseSyncNow:()=>request<{ok:boolean;url?:string;message?:string;error?:string}>('/api/admin/database/sync-now',{method:'POST'})
+import type {
+  AdminUser,
+  ContributorRequest,
+  Contribution,
+  Lesson,
+  Problem,
+  ProblemDetail,
+  ProblemSubmission,
+  PublicBootstrap,
+  Roadmap,
+  ScoreboardRow,
+  SessionUser,
+  UploadedFile,
+  XpSettings,
+} from "../types";
+const TOKEN_KEY = "cuphead_session_token";
+const API_BASE = String(import.meta.env.VITE_API_BASE_URL || "").replace(
+  /\/$/,
+  "",
+);
+const apiUrl = (url: string) => `${API_BASE}${url}`;
+export const assetUrl = (url: string) =>
+  url === "/icon.png" || /^https?:\/\//i.test(url) ? url : apiUrl(url);
+export const authToken = () => localStorage.getItem(TOKEN_KEY);
+export const setAuthToken = (t: string | null) =>
+  t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY);
+async function request<T>(url: string, options: RequestInit = {}) {
+  const headers = new Headers(options.headers);
+  if (!(options.body instanceof FormData))
+    headers.set("Content-Type", "application/json");
+  const token = authToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const res = await fetch(apiUrl(url), { ...options, headers });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) {
+    if (url.includes("/api/auth/me") || url.includes("/api/auth/login"))
+      setAuthToken(null);
+    throw new Error(data.error || "UNAUTHORIZED");
+  }
+  if (!res.ok) throw new Error(data.error || "Request failed");
+  return data as T;
+}
+export const api = {
+  publicBootstrap: () => request<PublicBootstrap>("/api/public/bootstrap"),
+  problem: (source: string, identifier: string) =>
+    request<ProblemDetail>(
+      `/api/public/problems/${encodeURIComponent(source)}/${encodeURIComponent(identifier)}`,
+    ),
+  problemBySlug: (slug: string) =>
+    request<ProblemDetail>(
+      `/api/public/problems/legacy/${encodeURIComponent(slug)}`,
+    ),
+  login: (username: string, password: string) =>
+    request<{ token: string; user: SessionUser }>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    }),
+  register: (x: any) =>
+    request<{ token: string; user: SessionUser }>("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(x),
+    }),
+  me: () => request<{ user: SessionUser }>("/api/auth/me"),
+  logout: () =>
+    request<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
+  profile: () => request<any>("/api/profile"),
+  updateProfile: (x: any) =>
+    request<{ user: SessionUser }>("/api/profile", {
+      method: "PUT",
+      body: JSON.stringify(x),
+    }),
+  chooseAvatar: (value: string) =>
+    request<{ user: SessionUser }>("/api/profile/avatar-choice", {
+      method: "PUT",
+      body: JSON.stringify({ value }),
+    }),
+  uploadAvatar: (file: File) => {
+    const f = new FormData();
+    f.append("avatar", file);
+    return request<{ user: SessionUser }>("/api/profile/avatar", {
+      method: "POST",
+      body: f,
+    });
+  },
+  saveProgress: (problemId: string, solved: boolean) =>
+    request<any>(`/api/progress/${problemId}`, {
+      method: "PUT",
+      body: JSON.stringify({ solved }),
+    }),
+  lessonProgress: () => request<string[]>("/api/progress/lessons"),
+  saveLessonProgress: (lessonId: string, completed: boolean) =>
+    request<any>(`/api/progress/lessons/${lessonId}`, {
+      method: "PUT",
+      body: JSON.stringify({ completed }),
+    }),
+  requestContributor: (x: any) =>
+    request<any>("/api/contributor-requests", {
+      method: "POST",
+      body: JSON.stringify(x),
+    }),
+  submitContribution: (problemId: string, x: any) =>
+    request<any>(`/api/problems/${problemId}/contributions`, {
+      method: "POST",
+      body: JSON.stringify(x),
+    }),
+  submitProblem: (x: any) =>
+    request<any>("/api/problem-submissions", {
+      method: "POST",
+      body: JSON.stringify(x),
+    }),
+  scoreboard: () => request<ScoreboardRow[]>("/api/public/scoreboard"),
+  publicXpSettings: () => request<XpSettings>("/api/public/xp-settings"),
+  collections: () => request<any[]>("/api/public/collections"),
+  collection: (slug: string) =>
+    request<any>(`/api/public/collections/${encodeURIComponent(slug)}`),
+  reactions: (contentType: string, contentId: string) =>
+    request<any>(
+      `/api/reactions?contentType=${encodeURIComponent(contentType)}&contentId=${encodeURIComponent(contentId)}`,
+    ),
+  react: (x: any) =>
+    request<any>("/api/reactions", { method: "POST", body: JSON.stringify(x) }),
+  createReviewerTicket: (x: any) =>
+    request<any>("/api/reviewer-tickets", {
+      method: "POST",
+      body: JSON.stringify(x),
+    }),
+  dashboard: () => request<any>("/api/admin/dashboard"),
+  adminLessons: () => request<Lesson[]>("/api/admin/lessons"),
+  createLesson: (x: Partial<Lesson>) =>
+    request<Lesson>("/api/admin/lessons", {
+      method: "POST",
+      body: JSON.stringify(x),
+    }),
+  updateLesson: (id: string, x: Partial<Lesson>) =>
+    request<Lesson>(`/api/admin/lessons/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(x),
+    }),
+  deleteLesson: (id: string) =>
+    request<{ ok: boolean }>(`/api/admin/lessons/${id}`, { method: "DELETE" }),
+  getRoadmap: () => request<Roadmap>("/api/admin/roadmap"),
+  saveRoadmap: (x: Roadmap) =>
+    request<Roadmap>("/api/admin/roadmap", {
+      method: "PUT",
+      body: JSON.stringify(x),
+    }),
+  adminProblems: () => request<Problem[]>("/api/admin/problems"),
+  adminProblem: (id: string) =>
+    request<ProblemDetail>(`/api/admin/problems/${id}`),
+  createProblem: (x: any) =>
+    request<Problem>("/api/admin/problems", {
+      method: "POST",
+      body: JSON.stringify(x),
+    }),
+  updateProblem: (id: string, x: any) =>
+    request<Problem>(`/api/admin/problems/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(x),
+    }),
+  problemSubmissions: () =>
+    request<ProblemSubmission[]>("/api/admin/problem-submissions"),
+  reviewProblemSubmission: (id: string, body: any) =>
+    request<any>(`/api/admin/problem-submissions/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+  contributions: () => request<Contribution[]>("/api/admin/contributions"),
+  reviewContribution: (
+    id: string,
+    status: "accepted" | "rejected",
+    reviewNote = "",
+  ) =>
+    request<any>(`/api/admin/contributions/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ status, reviewNote }),
+    }),
+  updateContribution: (id: string, x: any) =>
+    request<any>(`/api/admin/contributions/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(x),
+    }),
+  requests: () => request<ContributorRequest[]>("/api/admin/requests"),
+  reviewRequest: (id: string, status: "approved" | "rejected") =>
+    request<any>(`/api/admin/requests/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    }),
+  files: () => request<UploadedFile[]>("/api/admin/files"),
+  uploadFile: (file: File) => {
+    const f = new FormData();
+    f.append("file", file);
+    return request<UploadedFile>("/api/admin/files", {
+      method: "POST",
+      body: f,
+    });
+  },
+  deleteFile: (id: string) =>
+    request<{ ok: boolean }>(`/api/admin/files/${id}`, { method: "DELETE" }),
+  users: () => request<AdminUser[]>("/api/admin/users"),
+  createUser: (x: any) =>
+    request<AdminUser>("/api/admin/users", {
+      method: "POST",
+      body: JSON.stringify(x),
+    }),
+  updateRole: (id: string, role: string) =>
+    request<AdminUser>(`/api/admin/users/${id}/role`, {
+      method: "PUT",
+      body: JSON.stringify({ role }),
+    }),
+  updateAdminAbilities: (id: string, abilities: Record<string, boolean>) =>
+    request<AdminUser>(`/api/admin/users/${id}/abilities`, {
+      method: "PUT",
+      body: JSON.stringify({ abilities }),
+    }),
+  deleteUser: (id: string) =>
+    request<{ ok: boolean }>(`/api/admin/users/${id}`, { method: "DELETE" }),
+  updateUserPassword: (id: string, password: string) =>
+    request<AdminUser>(`/api/admin/users/${id}/password`, {
+      method: "PUT",
+      body: JSON.stringify({ password }),
+    }),
+  logs: () => request<any[]>("/api/admin/logs"),
+  xpSettings: () => request<any>("/api/admin/xp-settings"),
+  updateXpSettings: (x: any) =>
+    request<any>("/api/admin/xp-settings", {
+      method: "PUT",
+      body: JSON.stringify(x),
+    }),
+  adminCollections: () => request<any[]>("/api/admin/collections"),
+  adminCollection: (id: string) => request<any>(`/api/admin/collections/${id}`),
+  createCollection: (x: any) =>
+    request<any>("/api/admin/collections", {
+      method: "POST",
+      body: JSON.stringify(x),
+    }),
+  updateCollection: (id: string, x: any) =>
+    request<any>(`/api/admin/collections/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(x),
+    }),
+  deleteCollection: (id: string) =>
+    request<any>(`/api/admin/collections/${id}`, { method: "DELETE" }),
+  reviewerTickets: () => request<any[]>("/api/admin/reviewer-tickets"),
+  reviewReviewerTicket: (id: string, x: any) =>
+    request<any>(`/api/admin/reviewer-tickets/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(x),
+    }),
+  databaseInfo: () =>
+    request<{
+      path: string;
+      size: number;
+      userCount: number;
+      problemCount: number;
+      isVercel: boolean;
+      isCustomPath: boolean;
+    }>("/api/admin/database/info"),
+  restoreDatabase: (file: File) => {
+    const f = new FormData();
+    f.append("database", file);
+    return request<{ ok: boolean; message: string }>(
+      "/api/admin/database/restore",
+      { method: "POST", body: f },
+    );
+  },
+  databaseSyncStatus: () =>
+    request<{
+      hasToken: boolean;
+      enabled: boolean;
+      provider: string;
+      lastSyncedAt: string | null;
+      lastSyncError: string | null;
+      lastBlobUrl: string | null;
+      isSyncing: boolean;
+      localFileSize: number;
+    }>("/api/admin/database/sync-status"),
+  databaseSyncNow: () =>
+    request<{ ok: boolean; url?: string; message?: string; error?: string }>(
+      "/api/admin/database/sync-now",
+      { method: "POST" },
+    ),
 };

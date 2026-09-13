@@ -1,3 +1,17 @@
-node_modules/ 
-dist/ 
-.env 
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+
+# Never commit generated data, credentials, sessions, or user uploads.
+server/data/*.sqlite
+server/data/*.sqlite-*
+server/uploads/
+uploads/
+*.db
+*.sqlite
+
+# Local verification artefacts
+audit-db/
+npm-debug.log*

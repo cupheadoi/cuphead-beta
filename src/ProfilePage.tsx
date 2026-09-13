@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import { api, authToken, setAuthToken } from "./lib/api";
+import { api, assetUrl, authToken, setAuthToken } from "./lib/api";
 
 const avatars = [
   "/icon.png",
@@ -79,7 +79,7 @@ export default function ProfilePage() {
   async function chooseAvatar(value: string) {
     setSaving(true);
     try {
-      const r = await api.updateProfile({ profileImage: value });
+      const r = await api.chooseAvatar(value);
       setData({ ...data, user: r.user });
     } catch (e: any) {
       setMessage(e.message);
@@ -122,7 +122,9 @@ export default function ProfilePage() {
                   ? "کاربر عادی"
                   : u.role === "owner"
                     ? "Headmaster"
-                    : u.role === "reviewer" ? "Reviewer" : "Admin"}
+                    : u.role === "reviewer"
+                      ? "Reviewer"
+                      : "Admin"}
               </p>
             </div>
           </div>
@@ -208,14 +210,86 @@ export default function ProfilePage() {
             <div className="space-y-3 mt-4">
               {data.problemSubmissions.map((x: any) => (
                 <div key={x.id} className="activity-row">
-                  <span>{x.problemName}{x.reviewNote && <small className="block text-slate-500 mt-1">{x.reviewNote}</small>}</span>
-                  <b className={x.status === 'accepted' ? 'text-emerald-300' : x.status === 'rejected' ? 'text-red-300' : 'text-amber-300'}>{x.status}{x.xpAwarded ? ` · ${x.xpAwarded} XP` : ''}</b>
+                  <span>
+                    {x.problemName}
+                    {x.reviewNote && (
+                      <small className="block text-slate-500 mt-1">
+                        {x.reviewNote}
+                      </small>
+                    )}
+                  </span>
+                  <b
+                    className={
+                      x.status === "accepted"
+                        ? "text-emerald-300"
+                        : x.status === "rejected"
+                          ? "text-red-300"
+                          : "text-amber-300"
+                    }
+                  >
+                    {x.status}
+                    {x.xpAwarded ? ` · ${x.xpAwarded} XP` : ""}
+                  </b>
                 </div>
               ))}
             </div>
           </section>
         )}
-        {u.role === "reviewer" && <section className="glass-card rounded-2xl p-6 mb-6"><h2 className="text-xl font-bold text-white">تیکت بررسی برای ادمین</h2><p className="text-sm text-slate-500 mt-2">اگر در درس‌های Review mode به راهنمایی نیاز دارید، برای ادمین تیکت بفرستید.</p><div className="grid md:grid-cols-2 gap-3 mt-4"><input className="input-ui" placeholder="موضوع تیکت" value={ticketSubject} onChange={e=>setTicketSubject(e.target.value)}/><textarea className="input-ui min-h-20" placeholder="توضیح" value={ticketBody} onChange={e=>setTicketBody(e.target.value)}/></div><button disabled={!ticketSubject.trim()||!ticketBody.trim()} onClick={async()=>{try{await api.createReviewerTicket({subject:ticketSubject,body:ticketBody});setTicketSubject('');setTicketBody('');setData(await api.profile());setMessage('تیکت برای ادمین ارسال شد.')}catch(e:any){setMessage(e.message)}}} className="btn-primary mt-3"><Send size={15}/> ارسال تیکت</button>{data.tickets?.length>0&&<div className="space-y-2 mt-5">{data.tickets.map((x:any)=><div key={x.id} className="activity-row"><span>{x.subject}</span><b className="text-amber-300">{x.status}</b></div>)}</div>}</section>}
+        {u.role === "reviewer" && (
+          <section className="glass-card rounded-2xl p-6 mb-6">
+            <h2 className="text-xl font-bold text-white">
+              تیکت بررسی برای ادمین
+            </h2>
+            <p className="text-sm text-slate-500 mt-2">
+              اگر در درس‌های Review mode به راهنمایی نیاز دارید، برای ادمین تیکت
+              بفرستید.
+            </p>
+            <div className="grid md:grid-cols-2 gap-3 mt-4">
+              <input
+                className="input-ui"
+                placeholder="موضوع تیکت"
+                value={ticketSubject}
+                onChange={(e) => setTicketSubject(e.target.value)}
+              />
+              <textarea
+                className="input-ui min-h-20"
+                placeholder="توضیح"
+                value={ticketBody}
+                onChange={(e) => setTicketBody(e.target.value)}
+              />
+            </div>
+            <button
+              disabled={!ticketSubject.trim() || !ticketBody.trim()}
+              onClick={async () => {
+                try {
+                  await api.createReviewerTicket({
+                    subject: ticketSubject,
+                    body: ticketBody,
+                  });
+                  setTicketSubject("");
+                  setTicketBody("");
+                  setData(await api.profile());
+                  setMessage("تیکت برای ادمین ارسال شد.");
+                } catch (e: any) {
+                  setMessage(e.message);
+                }
+              }}
+              className="btn-primary mt-3"
+            >
+              <Send size={15} /> ارسال تیکت
+            </button>
+            {data.tickets?.length > 0 && (
+              <div className="space-y-2 mt-5">
+                {data.tickets.map((x: any) => (
+                  <div key={x.id} className="activity-row">
+                    <span>{x.subject}</span>
+                    <b className="text-amber-300">{x.status}</b>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
         <div className="grid lg:grid-cols-[1.1fr_.9fr] gap-5">
           {canApply && (
             <section className="glass-card rounded-2xl p-6">
@@ -331,7 +405,7 @@ export default function ProfilePage() {
 function Avatar({ value, name }: { value?: string; name: string }) {
   return value?.startsWith("/uploads/") || value === "/icon.png" ? (
     <div className="profile-avatar">
-      <img src={value || "/icon.png"} alt={name} />
+      <img src={assetUrl(value || "/icon.png")} alt={name} />
     </div>
   ) : (
     <div className="profile-avatar piece-avatar">

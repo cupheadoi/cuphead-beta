@@ -40,16 +40,18 @@ export default function ProblemPage() {
     load
       ?.then((p) => {
         setProblem(p);
-        setSolved(authToken() ? p.solved : localStorage.getItem(`cuphead_problem_${p.id}`) === "true");
+        setSolved(
+          authToken()
+            ? p.solved
+            : localStorage.getItem(`cuphead_problem_${p.id}`) === "true",
+        );
         const fa = p.statements.find((x) => x.language === "fa");
         const en = p.statements.find((x) => x.language === "en");
         setLang(fa ? "fa" : en ? "en" : "fa");
       })
       .catch((e) => setError(e.message || "مسئله پیدا نشد."));
   }, [source, identifier, slug]);
-  const statement =
-    problem?.statements.find((x) => x.language === lang) ||
-    problem?.statements[0];
+  const statement = problem?.statements.find((x) => x.language === lang);
   const education = useMemo(
     () =>
       problem?.education.filter((x) => x.kind === edu && x.language === "fa") ||
@@ -131,9 +133,24 @@ export default function ProblemPage() {
                       ریت Codeforces: {problem.rating}
                     </span>
                   )}
-                {problem.source.slug === "usaco" && problem.sourceMeta?.usacoLevel && <span className="meta-chip">مدال USACO: {problem.sourceMeta.usacoLevel}</span>}
-                {problem.source.slug === "coci" && problem.sourceMeta?.contestYear && <span className="meta-chip">سال مسابقه COCI: {problem.sourceMeta.contestYear}</span>}
-                {problem.source.slug === "cses" && problem.sourceMeta?.csesTopic && <span className="meta-chip">موضوع CSES: {problem.sourceMeta.csesTopic}</span>}
+                {problem.source.slug === "usaco" &&
+                  problem.sourceMeta?.usacoLevel && (
+                    <span className="meta-chip">
+                      مدال USACO: {problem.sourceMeta.usacoLevel}
+                    </span>
+                  )}
+                {problem.source.slug === "coci" &&
+                  problem.sourceMeta?.contestYear && (
+                    <span className="meta-chip">
+                      سال مسابقه COCI: {problem.sourceMeta.contestYear}
+                    </span>
+                  )}
+                {problem.source.slug === "cses" &&
+                  problem.sourceMeta?.csesTopic && (
+                    <span className="meta-chip">
+                      موضوع CSES: {problem.sourceMeta.csesTopic}
+                    </span>
+                  )}
                 <span className="content-author">
                   ایجادکننده: {problem.authorLabel || "CupHead"}
                 </span>
@@ -195,12 +212,18 @@ export default function ProblemPage() {
                       <button
                         className={lang === "fa" ? "active" : ""}
                         onClick={() => setLang("fa")}
+                        disabled={
+                          !problem.statements.some((x) => x.language === "fa")
+                        }
                       >
                         فارسی
                       </button>
                       <button
                         className={lang === "en" ? "active" : ""}
                         onClick={() => setLang("en")}
+                        disabled={
+                          !problem.statements.some((x) => x.language === "en")
+                        }
                       >
                         English
                       </button>
@@ -228,7 +251,10 @@ export default function ProblemPage() {
                     </div>
                   )}
                 </article>
-                <ReactionBar contentType="statement" contentId={statement?.id || problem.id} />
+                <ReactionBar
+                  contentType="statement"
+                  contentId={statement?.id || problem.id}
+                />
                 <Examples examples={problem.examples} />
               </>
             ) : (
@@ -351,7 +377,7 @@ function EducationPanel({
               {education.map((x: any) => (
                 <div key={x.id} className="education-card">
                   <div className="flex items-center gap-2 text-xs text-cyan-300 mb-3">
-                    {x.kind!=='solution'&&x.title}
+                    {x.kind !== "solution" && x.title}
                     <span className="content-author">
                       نویسنده: {x.authorLabel || "CupHead"}
                     </span>

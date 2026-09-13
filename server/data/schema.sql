@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS users (
   profile_image TEXT NOT NULL DEFAULT '/icon.png',
   abilities_json TEXT NOT NULL DEFAULT '{}',
   reviewer INTEGER NOT NULL DEFAULT 0,
-  plain_password TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -45,7 +44,7 @@ CREATE TABLE IF NOT EXISTS roadmap_modules (
   description TEXT NOT NULL DEFAULT '',
   piece TEXT NOT NULL DEFAULT 'pawn',
   position INTEGER NOT NULL DEFAULT 0,
-  UNIQUE(section, rank, position)
+  UNIQUE(section, piece, position)
 );
 
 CREATE TABLE IF NOT EXISTS roadmap_module_lessons (
@@ -158,6 +157,14 @@ CREATE TABLE IF NOT EXISTS progress (
   solved INTEGER NOT NULL DEFAULT 0,
   updated_at TEXT NOT NULL,
   PRIMARY KEY(user_id, problem_id)
+);
+
+CREATE TABLE IF NOT EXISTS lesson_progress (
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  lesson_id TEXT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+  completed INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(user_id, lesson_id)
 );
 
 CREATE TABLE IF NOT EXISTS contributor_requests (
