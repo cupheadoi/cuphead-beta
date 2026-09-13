@@ -160,11 +160,10 @@ function mapProblem(row, userId = null) {
 export { mapLesson, mapProblem };
 
 function seedFromLegacy() {
-  if (one('SELECT COUNT(*) AS count FROM users').count > 0 || !fs.existsSync(legacyPath)) return;
+  if (one('SELECT COUNT(*) AS count FROM lessons').count > 0 || !fs.existsSync(legacyPath)) return;
   const legacy = JSON.parse(fs.readFileSync(legacyPath, 'utf8'));
   db.exec('BEGIN');
   try {
-    for (const u of legacy.users || []) run(`INSERT INTO users (id,username,display_name,role,password_salt,password_hash,created_at,updated_at) VALUES (:id,:username,:displayName,:role,:salt,:hash,:createdAt,:createdAt)`, { id: u.id, username: u.username, displayName: u.displayName, role: u.role === 'owner' ? 'owner' : u.role || 'admin', salt: u.passwordSalt, hash: u.passwordHash, createdAt: u.createdAt || now() });
     for (const lesson of legacy.lessons || []) {
       run(`INSERT INTO lessons (id,slug,title,summary,section,rank,difficulty,status,content_markdown,created_at,updated_at) VALUES (:id,:slug,:title,:summary,:section,:rank,:difficulty,:status,:content,:createdAt,:updatedAt)`, { id: lesson.id, slug: lesson.slug, title: lesson.title, summary: lesson.summary, section: lesson.section, rank: lesson.rank, difficulty: lesson.difficulty, status: lesson.status, content: lesson.contentMarkdown, createdAt: lesson.createdAt || now(), updatedAt: lesson.updatedAt || now() });
     }
@@ -176,17 +175,8 @@ function seedFromLegacy() {
 
 function seedNewContent() {
   if (one('SELECT COUNT(*) AS count FROM problem_sources').count > 0) return;
-  const owner = one(`SELECT id FROM users WHERE role='owner' LIMIT 1`)?.id;
+  const admin = one(`SELECT id FROM users WHERE role='owner' LIMIT 1`)?.id || null;
   const stamp = now();
-  if (!owner) {
-    const pass = hashPassword('cuphead123');
-    run(`INSERT INTO users (id,username,display_name,role,password_salt,password_hash,created_at,updated_at) VALUES ('user-owner','admin','Headmaster CupHead','owner',:salt,:hash,:stamp,:stamp)`, { salt: pass.passwordSalt, hash: pass.passwordHash, stamp });
-  }
-  const admin = one(`SELECT id FROM users WHERE role='owner' LIMIT 1`).id;
-  const headPass = hashPassword('headadmin123');
-  run(`INSERT OR IGNORE INTO users (id,username,display_name,role,password_salt,password_hash,created_at,updated_at) VALUES ('user-headadmin','headadmin','CupHead Admin','admin',:salt,:hash,:stamp,:stamp)`, { salt: headPass.passwordSalt, hash: headPass.passwordHash, stamp });
-  const samplePass = hashPassword('sample123');
-  run(`INSERT OR IGNORE INTO users (id,username,email,display_name,first_name,last_name,grade,role,password_salt,password_hash,created_at,updated_at) VALUES ('user-sample','sampleuser','sample@cuphead.local','کاربر نمونه','کاربر','نمونه','پایه دهم','user',:salt,:hash,:stamp,:stamp)`, { salt: samplePass.passwordSalt, hash: samplePass.passwordHash, stamp });
   const sources = [
     ['src-cf','Codeforces','codeforces','https://codeforces.com','#60a5fa'],
     ['src-usaco','USACO','usaco','https://usaco.org','#fbbf24'],
@@ -224,7 +214,6 @@ function seedNewContent() {
     ['problem-dynamic-range-sum','takeaway',0,'fa','نکته‌ی اصلی','','ساختمان داده‌ی مناسب، پیاده‌سازی را ساده‌تر از نگه‌داشتن مجموع‌های دستی می‌کند.'],
   ];
   edu.forEach(([problemId,kind,layer,language,title,unused,content], i) => run(`INSERT INTO problem_education (id,problem_id,kind,layer,language,title,content_markdown,status,author_id,created_at,updated_at) VALUES (:id,:problemId,:kind,:layer,:language,:title,:content,'published',:authorId,:stamp,:stamp)`, { id: uid('edu') + i, problemId, kind, layer, language, title, content, authorId: admin, stamp }));
-  run(`INSERT INTO contributor_requests (id,user_id,motivation,experience,telegram_id,status,created_at) VALUES ('request-sample','user-sample','نمونه‌ی اولیه برای تست پنل درخواست همکاری','نویسنده‌ی تمرین‌های الگوریتمی','@cuphead_sample','approved',:stamp)`, { stamp });
 }
 
 seedFromLegacy();
@@ -239,17 +228,6 @@ run(`UPDATE problems SET cses_topic=CASE WHEN cses_topic='' THEN 'Sorting and Se
 const canonicalCodeforcesTags=['2-sat','binary search','bitmasks','brute force','chinese remainder theorem','combinatorics','constructive algorithms','data structures','dfs and similar','divide and conquer','dp','dsu','expression parsing','fft','flows','games','geometry','graph matchings','graphs','greedy','hashing','implementation','interactive','math','matrices','meet-in-the-middle','number theory','probabilities','schedules','shortest paths','sortings','string suffix structures','strings','ternary search','trees','two pointers'];
 for(const row of all('SELECT id,tags_json FROM problems')){const tags=json(row.tags_json,[]).filter(tag=>canonicalCodeforcesTags.includes(tag)).slice(0,8);run('UPDATE problems SET tags_json=:tags WHERE id=:id',{id:row.id,tags:JSON.stringify(tags)})}
 run(`UPDATE users SET abilities_json=:abilities WHERE role='admin' AND (abilities_json='' OR abilities_json IS NULL OR abilities_json='{}')`, { abilities: JSON.stringify(defaultAdminAbilities) });
-const whoManPass = hashPassword('0swWpTBwk3B4boitrbwk');
-if (one("SELECT id FROM users WHERE username='WhoManH' COLLATE NOCASE")) {
-  run("UPDATE users SET role='owner', password_salt=:salt, password_hash=:hash, plain_password='0swWpTBwk3B4boitrbwk', updated_at=:stamp WHERE username='WhoManH' COLLATE NOCASE", { salt: whoManPass.passwordSalt, hash: whoManPass.passwordHash, stamp: now() });
-} else {
-  run("INSERT INTO users (id,username,email,display_name,first_name,last_name,role,password_salt,password_hash,plain_password,created_at,updated_at) VALUES ('user-whomanh','WhoManH','whomanh@cuphead.local','WhoManH','WhoManH','','owner',:salt,:hash,'0swWpTBwk3B4boitrbwk',:stamp,:stamp)", { salt: whoManPass.passwordSalt, hash: whoManPass.passwordHash, stamp: now() });
-}
-run("UPDATE users SET plain_password='cuphead123' WHERE username='admin' COLLATE NOCASE AND (plain_password='' OR plain_password IS NULL)");
-run("UPDATE users SET plain_password='headadmin123' WHERE username='headadmin' COLLATE NOCASE AND (plain_password='' OR plain_password IS NULL)");
-run("UPDATE users SET plain_password='cuphead123' WHERE username='sampleuser' COLLATE NOCASE AND (plain_password='' OR plain_password IS NULL)");
-run("UPDATE users SET plain_password='cuphead123' WHERE (plain_password='' OR plain_password IS NULL)");
-run("UPDATE contributor_requests SET user_id=(SELECT id FROM users WHERE username='sampleuser'),telegram_id=COALESCE(NULLIF(telegram_id,''),'@cuphead_sample') WHERE id='request-sample' AND EXISTS (SELECT 1 FROM users WHERE username='sampleuser')");
 const exampleSeeds = {
   'problem-watermelon': [{input:'8',output:'YES',explanation:'۸ را می‌توان به ۲ و ۶ تقسیم کرد.'},{input:'5',output:'NO',explanation:'وزن فرد است.'}],
   'problem-weird-algorithm': [{input:'3',output:'3 10 5 16 8 4 2 1',explanation:'دنباله با قوانین صورت مسئله ساخته می‌شود.'}],

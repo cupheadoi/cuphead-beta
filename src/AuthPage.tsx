@@ -86,8 +86,21 @@ export default function AuthPage() {
           )}
 
           <label className="field-label block">
-            نام کاربری یا ایمیل
-            <input className="input-ui mt-2 mb-4" required autoComplete="username" value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} />
+            {mode === 'register' ? (
+              <>
+                نام کاربری <span className="text-cyan-300">*</span>
+              </>
+            ) : (
+              'نام کاربری یا ایمیل'
+            )}
+            <input
+              className="input-ui mt-2 mb-4"
+              required
+              autoComplete="username"
+              placeholder={mode === 'register' ? 'یک نام کاربری انتخاب کنید' : 'نام کاربری یا ایمیل خود را وارد کنید'}
+              value={form.username}
+              onChange={e => setForm({ ...form, username: e.target.value })}
+            />
           </label>
 
           <label className="field-label block">

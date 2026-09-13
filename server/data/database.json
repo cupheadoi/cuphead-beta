@@ -1,24 +1,5 @@
 {
-  "users": [
-    {
-      "id": "user-whomanh",
-      "username": "WhoManH",
-      "displayName": "WhoManH",
-      "role": "owner",
-      "passwordSalt": "3c41c70db3dea0031da613f3903761bb",
-      "passwordHash": "e4552b39dcc9f827e1caf4ce602160360505fe531125dea42a7145bf2a0548608093cd2683e7ee0d4c78a012776e232040d25ba85a05f3ab1a952f9543d5bd86",
-      "createdAt": "2026-09-12T14:40:00.000Z"
-    },
-    {
-      "id": "user-owner",
-      "username": "admin",
-      "displayName": "Cuphead Owner",
-      "role": "owner",
-      "passwordSalt": "8c1a7f4b5e2d9a31b67c8d00ee44aa91",
-      "passwordHash": "a2c68ddbb510998a671f54e645a8f82231a029eec806af02a6ae1da8297c9e6abbf7638e578e6abd6468a7262ff30a3682c5ead8e92a9459b95c64a79e4ac2b1",
-      "createdAt": "2026-09-09T00:00:00.000Z"
-    }
-  ],
+  "users": [],
   "lessons": [
     {
       "id": "lesson-fast-io",
