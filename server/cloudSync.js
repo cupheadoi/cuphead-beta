@@ -55,10 +55,31 @@ export async function initCloudSync(dbPath, onDatabaseUpdated) {
 
     if (targetBlob && targetBlob.url) {
       console.log(`[CloudSync] Found remote database (${targetBlob.size} bytes), downloading from:`, targetBlob.url);
-      const res = await fetch(targetBlob.url);
-      if (!res.ok) throw new Error(`HTTP error downloading blob: ${res.status}`);
-      const arrayBuffer = await res.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      
+      let buffer = null;
+      let res = await fetch(targetBlob.url);
+      if (res.ok) {
+        buffer = Buffer.from(await res.arrayBuffer());
+      } else {
+        // Try with Authorization header in case the store is Private
+        res = await fetch(targetBlob.url, {
+          headers: { Authorization: `Bearer ${rawToken.trim()}` }
+        });
+        if (res.ok) {
+          buffer = Buffer.from(await res.arrayBuffer());
+        } else {
+          // Try through blob get helper
+          const { get } = await import('@vercel/blob');
+          const blobResult = await get(targetBlob.pathname, { access: 'private', token: rawToken.trim() });
+          if (blobResult && blobResult.stream) {
+            buffer = Buffer.from(await new Response(blobResult.stream).arrayBuffer());
+          }
+        }
+      }
+
+      if (!buffer || buffer.length === 0) {
+        throw new Error(`Failed to download blob content (HTTP status: ${res?.status})`);
+      }
 
       fs.mkdirSync(path.dirname(dbPath), { recursive: true });
       fs.writeFileSync(dbPath, buffer);
@@ -90,6 +111,7 @@ export async function initCloudSync(dbPath, onDatabaseUpdated) {
 
 /**
  * Uploads local SQLite file to Vercel Blob.
+ * Tries public access first; if private store, automatically falls back to private access.
  */
 export async function pushDatabaseToCloud(dbPath) {
   const rawToken = process.env.BLOB_READ_WRITE_TOKEN;
@@ -113,11 +135,26 @@ export async function pushDatabaseToCloud(dbPath) {
     const fileBuffer = fs.readFileSync(dbPath);
     console.log(`[CloudSync] Uploading ${fileBuffer.length} bytes to Vercel Blob...`);
 
-    const blob = await put('cuphead.sqlite', fileBuffer, {
-      access: 'public',
-      addRandomSuffix: false,
-      token: rawToken.trim(),
-    });
+    let blob;
+    try {
+      blob = await put('cuphead.sqlite', fileBuffer, {
+        access: 'public',
+        addRandomSuffix: false,
+        token: rawToken.trim(),
+      });
+    } catch (putErr) {
+      // If store was created as Private, retry with access: 'private'
+      const putErrMsg = String(putErr?.message || '').toLowerCase();
+      if (putErrMsg.includes('private') || putErrMsg.includes('access') || putErrMsg.includes('public')) {
+        blob = await put('cuphead.sqlite', fileBuffer, {
+          access: 'private',
+          addRandomSuffix: false,
+          token: rawToken.trim(),
+        });
+      } else {
+        throw putErr;
+      }
+    }
 
     lastSyncedAt = new Date().toISOString();
     lastBlobUrl = blob.url;
