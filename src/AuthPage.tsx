@@ -56,27 +56,27 @@ export default function AuthPage() {
             {mode === 'login' ? 'ورود به CupHead' : 'ساخت حساب کاربری'}
           </h1>
           <p className="text-slate-500 mt-2 mb-7">
-            {mode === 'login' ? 'با نام کاربری یا ایمیل وارد حساب کاربری خود شوید.' : 'ایمیل، نام و نام خانوادگی برای ساخت حساب الزامی است.'}
+            {mode === 'login' ? 'با نام کاربری یا ایمیل وارد حساب کاربری خود شوید.' : 'تمامی فیلدها برای ساخت حساب کاربری الزامی هستند.'}
           </p>
 
           {mode === 'register' && (
             <>
               <div className="grid sm:grid-cols-2 gap-3">
                 <label className="field-label">
-                  نام <span className="text-cyan-300">*</span>
+                  نام <span className="text-cyan-300 font-bold">*</span>
                   <input required className="input-ui mt-2 mb-4" value={form.firstName} onChange={e => setForm({ ...form, firstName: e.target.value })} />
                 </label>
                 <label className="field-label">
-                  نام خانوادگی <span className="text-cyan-300">*</span>
+                  نام خانوادگی <span className="text-cyan-300 font-bold">*</span>
                   <input required className="input-ui mt-2 mb-4" value={form.lastName} onChange={e => setForm({ ...form, lastName: e.target.value })} />
                 </label>
               </div>
               <label className="field-label block">
-                ایمیل <span className="text-cyan-300">(الزامی)</span>
+                ایمیل <span className="text-cyan-300 font-bold">*</span>
                 <input required type="email" className="input-ui mt-2 mb-4" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
               </label>
               <label className="field-label block">
-                پایه تحصیلی
+                پایه تحصیلی <span className="text-cyan-300 font-bold">*</span>
                 <select required className="input-ui mt-2 mb-4" value={form.grade} onChange={e => setForm({ ...form, grade: e.target.value })}>
                   <option value="">انتخاب کنید</option>
                   {grades.map(g => <option key={g}>{g}</option>)}
@@ -88,7 +88,7 @@ export default function AuthPage() {
           <label className="field-label block">
             {mode === 'register' ? (
               <>
-                نام کاربری <span className="text-cyan-300">*</span>
+                نام کاربری <span className="text-cyan-300 font-bold">*</span>
               </>
             ) : (
               'نام کاربری یا ایمیل'
@@ -105,7 +105,9 @@ export default function AuthPage() {
 
           <label className="field-label block">
             <div className="flex items-center justify-between">
-              <span>رمز عبور</span>
+              <span>
+                رمز عبور {mode === 'register' && <span className="text-cyan-300 font-bold">*</span>}
+              </span>
               {mode === 'login' && (
                 <button
                   type="button"
