@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, BookOpen, Check, ClipboardCheck, Copy, Files, Library, LayoutDashboard, LogOut, Map, MessageCircle, MessageSquare, ScrollText, Send, ShieldCheck, Ticket, UserCog, Users, Workflow, X } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, ClipboardCheck, Copy, Database, Files, Library, LayoutDashboard, LogOut, Map, MessageCircle, MessageSquare, ScrollText, Send, ShieldCheck, Ticket, UserCog, Users, Workflow, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api, setAuthToken } from '../lib/api';
 import type { SessionUser } from '../types';
@@ -15,9 +15,10 @@ import ProblemComposer from './ProblemComposer';
 import LogPanel from './LogPanel';
 import ProblemCollectionManager from './ProblemCollectionManager';
 import ReviewerTicketPanel from './ReviewerTicketPanel';
+import DatabaseManager from './DatabaseManager';
 import { confirmUnsavedChanges } from '../hooks/useUnsavedChanges';
 
-type Tab = 'dashboard' | 'library' | 'lessons' | 'roadmap' | 'review' | 'problemReviews' | 'collections' | 'reviewerTickets' | 'requests' | 'files' | 'users' | 'logs';
+type Tab = 'dashboard' | 'library' | 'lessons' | 'roadmap' | 'review' | 'problemReviews' | 'collections' | 'reviewerTickets' | 'requests' | 'files' | 'users' | 'database' | 'logs';
 
 export default function AdminApp() {
   const location = useLocation(); const nav = useNavigate();
@@ -34,7 +35,7 @@ export default function AdminApp() {
   const items: [Tab, string, any][] = ([
     ['dashboard', 'داشبورد', LayoutDashboard], ['library', 'کتابخانه رسمی', Workflow], ['lessons', 'درس‌ها', BookOpen], ['roadmap', 'نقشه راه', Map],
     ['review', 'مشارکت‌ها', MessageSquare], ['problemReviews', 'مسئله‌های پیشنهادی', ClipboardCheck], ['collections', 'کتابخانه مجموعه‌ها', Library], ['reviewerTickets', 'تیکت‌های Reviewer', Ticket],
-    ...(user.role === 'owner' ? [['requests', 'درخواست همکاری', Users] as [Tab, string, any], ['users', 'حساب‌ها', UserCog] as [Tab, string, any], ['logs', 'گزارش تغییرات', ScrollText] as [Tab, string, any]] : []), ['files', 'فایل‌ها', Files]
+    ...(user.role === 'owner' ? [['requests', 'درخواست همکاری', Users] as [Tab, string, any], ['users', 'حساب‌ها', UserCog] as [Tab, string, any], ['database', 'پایگاه‌داده و پشتیبان', Database] as [Tab, string, any], ['logs', 'گزارش تغییرات', ScrollText] as [Tab, string, any]] : []), ['files', 'فایل‌ها', Files]
   ] as [Tab, string, any][]).filter(([id]) => user.role === 'owner' || !tabAbilities[id] || Boolean(user.abilities?.[tabAbilities[id]]));
   async function logout() { try { await api.logout(); } catch { /* already expired */ } setAuthToken(null); setUser(null); }
 
@@ -44,7 +45,7 @@ export default function AdminApp() {
       <nav className="p-3 flex lg:block gap-2 overflow-x-auto">{items.map(([id, label, Icon]) => <button key={id} onClick={() => confirmUnsavedChanges() && setTab(id)} className={`shrink-0 lg:w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition mb-1 ${tab === id ? 'bg-cyan-400/[.09] border border-cyan-300/20 text-cyan-100 shadow-[0_10px_24px_rgba(7,60,92,.2)]' : 'border border-transparent text-slate-400 hover:text-white hover:bg-white/[.045]'}`}><Icon size={18} strokeWidth={1.8}/><span>{label}</span></button>)}</nav>
       <div className="hidden lg:block p-4 mt-auto"><div className="glass-card rounded-2xl p-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-cyan-400/[.08] border border-cyan-300/20 flex items-center justify-center"><ShieldCheck size={18} className="text-cyan-200" /></div><div className="min-w-0"><div className="text-sm font-bold truncate">{user.displayName}</div><div className="text-xs text-slate-500 mt-1">{user.role === 'owner' ? 'Headmaster' : 'Admin'}</div></div></div><div className="grid grid-cols-2 gap-2 mt-4"><button onClick={() => nav('/')} className="btn-muted !px-2 !py-2 text-xs">سایت</button><button onClick={logout} className="btn-muted !px-2 !py-2 text-xs"><LogOut size={14} /> خروج</button></div></div></div>
     </aside>
-    <main className="relative flex-1 min-w-0"><div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top,rgba(22,101,168,.12),transparent_68%)]"/><div className="relative max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">{tab === 'dashboard' && <AdminDashboard user={user} />} {tab === 'library' && <OfficialLibrary user={user} />} {tab === 'lessons' && <LessonManager user={user} />} {tab === 'roadmap' && <RoadmapEditor user={user} />} {tab === 'review' && <ModerationQueue user={user} />} {tab === 'problemReviews' && <ProblemSubmissionQueue />} {tab === 'collections' && <ProblemCollectionManager user={user} />} {tab === 'reviewerTickets' && <ReviewerTicketPanel />} {tab === 'requests' && user.role === 'owner' && <RequestsPanel />} {tab === 'users' && user.role === 'owner' && <AccountManager user={user} />} {tab === 'logs' && user.role === 'owner' && <LogPanel />} {tab === 'files' && <FileManager user={user} />}</div></main>
+    <main className="relative flex-1 min-w-0"><div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top,rgba(22,101,168,.12),transparent_68%)]"/><div className="relative max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">{tab === 'dashboard' && <AdminDashboard user={user} />} {tab === 'library' && <OfficialLibrary user={user} />} {tab === 'lessons' && <LessonManager user={user} />} {tab === 'roadmap' && <RoadmapEditor user={user} />} {tab === 'review' && <ModerationQueue user={user} />} {tab === 'problemReviews' && <ProblemSubmissionQueue />} {tab === 'collections' && <ProblemCollectionManager user={user} />} {tab === 'reviewerTickets' && <ReviewerTicketPanel />} {tab === 'requests' && user.role === 'owner' && <RequestsPanel />} {tab === 'users' && user.role === 'owner' && <AccountManager user={user} />} {tab === 'database' && user.role === 'owner' && <DatabaseManager user={user} />} {tab === 'logs' && user.role === 'owner' && <LogPanel />} {tab === 'files' && <FileManager user={user} />}</div></main>
   </div>;
 }
 

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { scheduleCloudSync } from './cloudSync.js';
 
 const isVercel = Boolean(process.env.VERCEL);
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -10,9 +11,9 @@ const dataDir = path.join(here, 'data');
 const schemaPath = path.join(dataDir, 'schema.sql');
 const legacyPath = path.join(dataDir, 'database.json');
 
-let dbPath = path.join(dataDir, 'cuphead.sqlite');
+export let dbPath = process.env.DATABASE_PATH || path.join(dataDir, 'cuphead.sqlite');
 
-if (isVercel) {
+if (isVercel && !process.env.DATABASE_PATH) {
   const tmpDbPath = path.join('/tmp', 'cuphead.sqlite');
   const seedDbPath = path.join(dataDir, 'cuphead.sqlite');
   if (!fs.existsSync(tmpDbPath) && fs.existsSync(seedDbPath)) {
@@ -24,18 +25,36 @@ if (isVercel) {
   }
   dbPath = tmpDbPath;
 } else {
-  fs.mkdirSync(dataDir, { recursive: true });
+  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 }
 
-export const db = new DatabaseSync(dbPath);
-db.exec(fs.readFileSync(schemaPath, 'utf8'));
-try {
-  db.exec(`CREATE TABLE IF NOT EXISTS user_sessions (
-    token TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    created_at INTEGER NOT NULL
-  )`);
-} catch { /* session table ready */ }
+export { isVercel, dataDir };
+export let db = new DatabaseSync(dbPath);
+
+export function applyMigrationsAndSchema() {
+  db.exec('PRAGMA foreign_keys = ON;');
+  db.exec(fs.readFileSync(schemaPath, 'utf8'));
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS user_sessions (
+      token TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      created_at INTEGER NOT NULL
+    )`);
+  } catch { /* session table ready */ }
+}
+
+export function reloadDatabase(newFilePath) {
+  try { db.close(); } catch (err) { console.warn('Could not close db:', err); }
+  if (newFilePath && newFilePath !== dbPath) {
+    fs.copyFileSync(newFilePath, dbPath);
+  }
+  db = new DatabaseSync(dbPath);
+  applyMigrationsAndSchema();
+  scheduleCloudSync(dbPath, 100);
+  return true;
+}
+
+applyMigrationsAndSchema();
 function ensureColumn(table, column, definition) {
   try { db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`); } catch { /* existing database */ }
 }
@@ -77,7 +96,11 @@ export function verifyPassword(password, user) {
 }
 export const all = (sql, params = {}) => db.prepare(sql).all(params);
 export const one = (sql, params = {}) => db.prepare(sql).get(params);
-export const run = (sql, params = {}) => db.prepare(sql).run(params);
+export const run = (sql, params = {}) => {
+  const result = db.prepare(sql).run(params);
+  scheduleCloudSync(dbPath);
+  return result;
+};
 
 export function getDbSession(token) {
   if (!token) return null;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Check, Copy, Eye, EyeOff, KeyRound, Lock, Search, Shield, Trash2, UserCog, Users, X } from 'lucide-react';
-import { api } from '../lib/api';
+import { Check, Copy, Database, Download, Eye, EyeOff, KeyRound, Lock, Search, Shield, Trash2, UserCog, Users, X } from 'lucide-react';
+import { api, authToken } from '../lib/api';
 import type { AdminUser, Role, SessionUser } from '../types';
 import { confirmUnsavedChanges, useUnsavedChanges } from '../hooks/useUnsavedChanges';
 
@@ -167,17 +167,48 @@ export default function AccountManager({ user }: { user: SessionUser }) {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setShowAllPasswords(p => !p);
-            setVisibleMap({});
-          }}
-          className={`btn-muted flex items-center gap-2 !px-4 !py-2.5 text-sm transition ${showAllPasswords ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'text-slate-300'}`}
-        >
-          {showAllPasswords ? <EyeOff size={16} /> : <Eye size={16} />}
-          <span>{showAllPasswords ? 'مخفی کردن تمام رمزها' : 'نمایش تمام رمزهای عبور'}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const token = authToken();
+                const res = await fetch('/api/admin/database/backup', {
+                  headers: token ? { Authorization: `Bearer ${token}` } : {}
+                });
+                if (!res.ok) throw new Error('خطا در دریافت بک‌آپ پایگاه داده');
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `cuphead-backup-${new Date().toISOString().slice(0, 10)}.sqlite`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+              } catch (e: any) {
+                alert(e.message || 'خطا در دریافت نسخه پشتیبان');
+              }
+            }}
+            className="btn-muted flex items-center gap-2 !px-4 !py-2.5 text-sm transition text-cyan-300 border-cyan-500/30 hover:bg-cyan-500/10"
+            title="دانلود فایل دیتابیس SQLite برای نگهداری کاربران در برابر دیپلوی‌های بعدی"
+          >
+            <Download size={16} />
+            <span>دانلود بک‌آپ پایگاه‌داده</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowAllPasswords(p => !p);
+              setVisibleMap({});
+            }}
+            className={`btn-muted flex items-center gap-2 !px-4 !py-2.5 text-sm transition ${showAllPasswords ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'text-slate-300'}`}
+          >
+            {showAllPasswords ? <EyeOff size={16} /> : <Eye size={16} />}
+            <span>{showAllPasswords ? 'مخفی کردن تمام رمزها' : 'نمایش تمام رمزهای عبور'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Create New Account Box */}
