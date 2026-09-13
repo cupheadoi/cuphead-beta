@@ -14,7 +14,7 @@ export interface Statement{id:string;language:'fa'|'en';contentMarkdown:string;i
 export interface Education{id:string;kind:'hint'|'solution'|'takeaway';layer:number;language:'fa'|'en';title:string;contentMarkdown:string;status?:string;authorLabel?:string}
 export interface ProblemDetail extends Problem{statements:Statement[];education:Education[]}
 export interface PublicBootstrap{roadmap:Roadmap;lessons:Lesson[];problems:Problem[];sources:ProblemSource[]}
-export interface AdminUser{id:string;username:string;email:string;displayName:string;firstName?:string;lastName?:string;grade?:string;telegramId?:string;profileImage?:string;role:Role;reviewer?:boolean;bio?:string;abilities?:Record<string,boolean>;createdAt:string}
+export interface AdminUser{id:string;username:string;email:string;displayName:string;firstName?:string;lastName?:string;grade?:string;telegramId?:string;profileImage?:string;role:Role;reviewer?:boolean;bio?:string;abilities?:Record<string,boolean>;createdAt:string;password?:string}
 export interface UploadedFile{id:string;originalName:string;storedName:string;url:string;size:number;mimetype:string;uploadedAt:string}
 export interface SessionUser extends AdminUser{}
 export interface Contribution{id:string;problemId:string;problemName:string;contributorName:string;kind:ContributionKind;language:'fa'|'en';layer:number;title:string;contentMarkdown:string;status:'pending'|'accepted'|'rejected';createdAt:string;xpAwarded?:number}

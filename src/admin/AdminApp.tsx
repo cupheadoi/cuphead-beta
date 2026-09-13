@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, BookOpen, ClipboardCheck, Files, Library, LayoutDashboard, LogOut, Map, MessageSquare, ScrollText, ShieldCheck, Ticket, UserCog, Users, Workflow } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, ClipboardCheck, Copy, Files, Library, LayoutDashboard, LogOut, Map, MessageCircle, MessageSquare, ScrollText, Send, ShieldCheck, Ticket, UserCog, Users, Workflow, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api, setAuthToken } from '../lib/api';
 import type { SessionUser } from '../types';
@@ -57,7 +57,13 @@ function RequestsPanel() {
 }
 
 function Login({ onLogin, onBack }: { onLogin: (u: SessionUser) => void; onBack: () => void }) {
-  const [username, setUsername] = useState('admin'); const [password, setPassword] = useState('cuphead123'); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [copiedTelegram, setCopiedTelegram] = useState(false);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -75,5 +81,104 @@ function Login({ onLogin, onBack }: { onLogin: (u: SessionUser) => void; onBack:
       setBusy(false);
     }
   }
-  return <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4"><div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(37,99,235,.22),transparent_32rem)]" /><form onSubmit={submit} className="relative z-10 glass-card rounded-3xl p-7 sm:p-9 w-full max-w-md"><button type="button" onClick={onBack} className="back-link mb-7"><ArrowRight size={15} /> بازگشت به سایت</button><img src="/icon.png" alt="CupHead" className="w-14 h-14 rounded-2xl mb-5" /><h1 className="text-3xl font-black text-white">ورود به مدیریت</h1><p className="text-slate-500 text-sm mt-2 mb-7">برای Headmaster و Admin.</p><label className="field-label">نام کاربری<input className="input-ui mt-2 mb-4" value={username} onChange={e => setUsername(e.target.value)} /></label><label className="field-label">رمز عبور<input className="input-ui mt-2" type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>{error && <div className="error-note mt-4">{error}</div>}<button disabled={busy} className="btn-primary w-full mt-6">{busy ? 'در حال ورود...' : 'ورود'}</button><div className="text-xs text-slate-600 mt-5">نمونه: WhoManH / 0swWpTBwk3B4boitrbwk · admin / cuphead123 · headadmin / headadmin123</div></form></div>;
+
+  function copyTelegramHandle() {
+    navigator.clipboard?.writeText('@WhoMan_H');
+    setCopiedTelegram(true);
+    setTimeout(() => setCopiedTelegram(false), 2000);
+  }
+
+  return (
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(37,99,235,.22),transparent_32rem)]" />
+      <form onSubmit={submit} className="relative z-10 glass-card rounded-3xl p-7 sm:p-9 w-full max-w-md">
+        <button type="button" onClick={onBack} className="back-link mb-7">
+          <ArrowRight size={15} /> بازگشت به سایت
+        </button>
+        <img src="/icon.png" alt="CupHead" className="w-14 h-14 rounded-2xl mb-5" />
+        <h1 className="text-3xl font-black text-white">ورود به مدیریت</h1>
+        <p className="text-slate-500 text-sm mt-2 mb-7">برای Headmaster و Admin.</p>
+        <label className="field-label block">
+          نام کاربری یا ایمیل
+          <input className="input-ui mt-2 mb-4" placeholder="نام کاربری یا ایمیل" autoComplete="username" value={username} onChange={e => setUsername(e.target.value)} />
+        </label>
+        <label className="field-label block">
+          <div className="flex items-center justify-between">
+            <span>رمز عبور</span>
+            <button
+              type="button"
+              onClick={() => setShowForgot(true)}
+              className="text-xs text-cyan-400 hover:text-cyan-300 transition hover:underline"
+            >
+              فراموشی رمز عبور؟
+            </button>
+          </div>
+          <input className="input-ui mt-2" type="password" placeholder="رمز عبور" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} />
+        </label>
+        {error && <div className="error-note mt-4">{error}</div>}
+        <button disabled={busy} className="btn-primary w-full mt-6">
+          {busy ? 'در حال ورود...' : 'ورود'}
+        </button>
+      </form>
+
+      {showForgot && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <div className="glass-card rounded-3xl p-6 sm:p-8 max-w-md w-full border border-cyan-400/30 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative">
+            <button
+              type="button"
+              onClick={() => setShowForgot(false)}
+              className="absolute top-5 left-5 text-slate-400 hover:text-white p-2 rounded-xl bg-white/5 hover:bg-white/10 transition"
+            >
+              <X size={18} />
+            </button>
+            <div className="w-12 h-12 rounded-2xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center mb-4">
+              <MessageCircle size={24} className="text-cyan-400" />
+            </div>
+            <h2 className="text-2xl font-black text-white">فراموشی رمز عبور</h2>
+            <p className="text-slate-300 text-sm mt-3 leading-relaxed">
+              جهت بازیابی یا بازنشانی رمز عبور، لطفاً در تلگرام به آیدی زیر پیام دهید:
+            </p>
+            <div className="mt-5 p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-400">
+                  <Send size={17} />
+                </div>
+                <div>
+                  <div className="text-xs text-slate-400">آیدی تلگرام مدیریت:</div>
+                  <div className="text-base font-bold text-cyan-300 font-mono" dir="ltr">@WhoMan_H</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={copyTelegramHandle}
+                className="btn-muted !py-1.5 !px-3 text-xs flex items-center gap-1.5"
+                title="کپی آیدی"
+              >
+                {copiedTelegram ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                <span>{copiedTelegram ? 'کپی شد' : 'کپی'}</span>
+              </button>
+            </div>
+            <div className="mt-5 flex flex-col gap-2.5">
+              <a
+                href="https://t.me/WhoMan_H"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-primary w-full flex items-center justify-center gap-2 text-center"
+              >
+                <Send size={16} />
+                ارسال پیام به @WhoMan_H در تلگرام
+              </a>
+              <button
+                type="button"
+                onClick={() => setShowForgot(false)}
+                className="btn-muted w-full py-2.5 text-sm"
+              >
+                بازگشت به ورود
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

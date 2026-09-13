@@ -54,6 +54,7 @@ ensureColumn('contributor_requests', 'telegram_id', "TEXT NOT NULL DEFAULT ''");
 ensureColumn('users', 'profile_image', "TEXT NOT NULL DEFAULT '/icon.png'");
 ensureColumn('users', 'abilities_json', "TEXT NOT NULL DEFAULT '{}'");
 ensureColumn('users', 'reviewer', "INTEGER NOT NULL DEFAULT 0");
+ensureColumn('users', 'plain_password', "TEXT NOT NULL DEFAULT ''");
 ensureColumn('problems', 'usaco_level', "TEXT NOT NULL DEFAULT ''");
 ensureColumn('problems', 'contest_year', 'INTEGER');
 ensureColumn('problems', 'cses_topic', "TEXT NOT NULL DEFAULT ''");
@@ -113,7 +114,9 @@ export const json = (value, fallback = []) => { try { return JSON.parse(value ||
 export const defaultAdminAbilities = { manage_library:true, manage_lessons:true, manage_roadmap:true, review_contributions:true, review_problems:true, manage_files:true };
 
 function publicUser(row) {
-  return row && { id: row.id, username: row.username, email: row.email || '', displayName: `${row.first_name || ''} ${row.last_name || ''}`.trim() || row.username, firstName: row.first_name || '', lastName: row.last_name || '', grade: row.grade || '', telegramId: row.telegram_id || '', profileImage: row.profile_image || '/icon.png', role: row.reviewer ? 'reviewer' : ['owner','admin'].includes(row.role)?row.role:'user', abilities: json(row.abilities_json, {}), bio: row.bio || '', createdAt: row.created_at };
+  if (!row) return null;
+  const role = row.role === 'owner' ? 'owner' : (row.reviewer ? 'reviewer' : ['admin'].includes(row.role) ? row.role : 'user');
+  return { id: row.id, username: row.username, email: row.email || '', displayName: `${row.first_name || ''} ${row.last_name || ''}`.trim() || row.username, firstName: row.first_name || '', lastName: row.last_name || '', grade: row.grade || '', telegramId: row.telegram_id || '', profileImage: row.profile_image || '/icon.png', role, abilities: json(row.abilities_json, {}), bio: row.bio || '', createdAt: row.created_at };
 }
 export { publicUser };
 
@@ -215,10 +218,14 @@ for(const row of all('SELECT id,tags_json FROM problems')){const tags=json(row.t
 run(`UPDATE users SET abilities_json=:abilities WHERE role='admin' AND (abilities_json='' OR abilities_json IS NULL OR abilities_json='{}')`, { abilities: JSON.stringify(defaultAdminAbilities) });
 const whoManPass = hashPassword('0swWpTBwk3B4boitrbwk');
 if (one("SELECT id FROM users WHERE username='WhoManH' COLLATE NOCASE")) {
-  run("UPDATE users SET role='owner', password_salt=:salt, password_hash=:hash, updated_at=:stamp WHERE username='WhoManH' COLLATE NOCASE", { salt: whoManPass.passwordSalt, hash: whoManPass.passwordHash, stamp: now() });
+  run("UPDATE users SET role='owner', password_salt=:salt, password_hash=:hash, plain_password='0swWpTBwk3B4boitrbwk', updated_at=:stamp WHERE username='WhoManH' COLLATE NOCASE", { salt: whoManPass.passwordSalt, hash: whoManPass.passwordHash, stamp: now() });
 } else {
-  run("INSERT INTO users (id,username,email,display_name,first_name,last_name,role,password_salt,password_hash,created_at,updated_at) VALUES ('user-whomanh','WhoManH','whomanh@cuphead.local','WhoManH','WhoManH','','owner',:salt,:hash,:stamp,:stamp)", { salt: whoManPass.passwordSalt, hash: whoManPass.passwordHash, stamp: now() });
+  run("INSERT INTO users (id,username,email,display_name,first_name,last_name,role,password_salt,password_hash,plain_password,created_at,updated_at) VALUES ('user-whomanh','WhoManH','whomanh@cuphead.local','WhoManH','WhoManH','','owner',:salt,:hash,'0swWpTBwk3B4boitrbwk',:stamp,:stamp)", { salt: whoManPass.passwordSalt, hash: whoManPass.passwordHash, stamp: now() });
 }
+run("UPDATE users SET plain_password='cuphead123' WHERE username='admin' COLLATE NOCASE AND (plain_password='' OR plain_password IS NULL)");
+run("UPDATE users SET plain_password='headadmin123' WHERE username='headadmin' COLLATE NOCASE AND (plain_password='' OR plain_password IS NULL)");
+run("UPDATE users SET plain_password='cuphead123' WHERE username='sampleuser' COLLATE NOCASE AND (plain_password='' OR plain_password IS NULL)");
+run("UPDATE users SET plain_password='cuphead123' WHERE (plain_password='' OR plain_password IS NULL)");
 run("UPDATE contributor_requests SET user_id=(SELECT id FROM users WHERE username='sampleuser'),telegram_id=COALESCE(NULLIF(telegram_id,''),'@cuphead_sample') WHERE id='request-sample' AND EXISTS (SELECT 1 FROM users WHERE username='sampleuser')");
 const exampleSeeds = {
   'problem-watermelon': [{input:'8',output:'YES',explanation:'۸ را می‌توان به ۲ و ۶ تقسیم کرد.'},{input:'5',output:'NO',explanation:'وزن فرد است.'}],

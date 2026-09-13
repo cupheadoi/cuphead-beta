@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
   profile_image TEXT NOT NULL DEFAULT '/icon.png',
   abilities_json TEXT NOT NULL DEFAULT '{}',
   reviewer INTEGER NOT NULL DEFAULT 0,
+  plain_password TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
