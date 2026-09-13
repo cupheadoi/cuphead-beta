@@ -13,7 +13,8 @@ import {
   FileCode2,
   Users,
   Layers,
-  Info
+  Info,
+  AlertCircle
 } from 'lucide-react';
 import { api, authToken } from '../lib/api';
 import type { SessionUser } from '../types';
@@ -29,6 +30,8 @@ interface DatabaseInfo {
 
 interface SyncStatus {
   hasToken: boolean;
+  tokenValid?: boolean;
+  tokenAuthFailed?: boolean;
   enabled: boolean;
   provider: string;
   lastSyncedAt: string | null;
@@ -293,6 +296,16 @@ export default function DatabaseManager({ user }: { user: SessionUser }) {
             )}
           </div>
         </div>
+
+        {syncStatus?.lastSyncError && (
+          <div className="mt-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-start gap-2.5">
+            <AlertCircle size={16} className="shrink-0 mt-0.5 text-amber-400" />
+            <div className="leading-relaxed">
+              <span className="font-bold">وضعیت همگام‌ساز: </span>
+              {syncStatus.lastSyncError}
+            </div>
+          </div>
+        )}
 
         {syncStatus?.enabled ? (
           <div className="mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-400">
