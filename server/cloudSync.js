@@ -140,6 +140,7 @@ export async function pushDatabaseToCloud(dbPath) {
       blob = await put('cuphead.sqlite', fileBuffer, {
         access: 'public',
         addRandomSuffix: false,
+        allowOverwrite: true,
         token: rawToken.trim(),
       });
     } catch (putErr) {
@@ -149,6 +150,7 @@ export async function pushDatabaseToCloud(dbPath) {
         blob = await put('cuphead.sqlite', fileBuffer, {
           access: 'private',
           addRandomSuffix: false,
+          allowOverwrite: true,
           token: rawToken.trim(),
         });
       } else {
