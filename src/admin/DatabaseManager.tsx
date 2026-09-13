@@ -106,7 +106,10 @@ export default function DatabaseManager({ user }: { user: SessionUser }) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `cuphead-backup-${new Date().toISOString().slice(0, 10)}.sqlite`;
+      const d = new Date();
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const timeStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+      a.download = `cuphead-backup-${timeStr}.sqlite`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

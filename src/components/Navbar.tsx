@@ -17,11 +17,14 @@ export default function Navbar({ section = "programming", rank = "pawn" }: { sec
     { label: "ارتباط با ما", path: "/contact", icon: MessageCircle },
   ];
   const go = (path: string) => { setOpen(false); nav(path); };
-  const active = (path: string) => path.startsWith("/learn") ? location.pathname.startsWith("/learn") || location.pathname.startsWith("/lesson") : location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const active = (path: string) => {
+    if (path.startsWith("/learn")) return location.pathname.startsWith("/learn") || location.pathname.startsWith("/lesson");
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
 
   return <header className="sticky top-0 z-50 border-b border-slate-400/10 bg-[#081321]/78 backdrop-blur-2xl" dir="rtl">
     <div className="relative mx-auto flex min-h-[4.5rem] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-      <button onClick={() => go("/learn/programming/pawn")} className="brand-lockup shrink-0" aria-label="خانه‌ی CupHead">
+      <button onClick={() => go("/")} className="brand-lockup shrink-0 cursor-pointer transition hover:opacity-90" aria-label="صفحه اصلی CupHead">
         <img src="/logotype.png" alt="CupHead" />
       </button>
       <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex" aria-label="ناوبری اصلی">

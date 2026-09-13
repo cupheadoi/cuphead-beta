@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import HomePage from "./HomePage";
 import PublicLearnPage from "./PublicLearnPage";
 import LessonPage from "./LessonPage";
 import ProblemsetPage from "./ProblemsetPage";
@@ -11,13 +12,11 @@ import SubmitProblemPage from "./SubmitProblemPage";
 import ContactPage from "./ContactPage";
 import CollectionsPage from "./CollectionsPage";
 import CollectionPage from "./CollectionPage";
+
 export default function App() {
   return (
     <Routes>
-      <Route
-        path="/"
-        element={<Navigate to="/learn/programming/pawn" replace />}
-      />
+      <Route path="/" element={<HomePage />} />
       <Route path="/learn/:section/:rank" element={<PublicLearnPage />} />
       <Route path="/lesson/:slug" element={<LessonPage />} />
       <Route path="/problems" element={<ProblemsetPage />} />
